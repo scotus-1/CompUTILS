@@ -125,8 +125,6 @@ dmypy.json
 
 # pycharm stuff
 .idea/
-
-# bot things
-token.txt
+Tracer.csv
 
 

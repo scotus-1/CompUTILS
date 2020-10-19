@@ -17,23 +17,47 @@ def gen_sha1(path, abspath=True):
 
 
 class dir_sum:
-    def __init__(self, dir_path='.'):
+    def __init__(self, dir_path='.', gitignore=True, gitignore_path=None):
         self.dirPath = dir_path
+        self.gitignorePath = gitignore_path
+        self.gitignore = gitignore
+        if gitignore_path is None:
+            self.gitignorePath = os.path.join(dir_path, '.gitignore')
 
 
     def checksum_dir(self, csv_write, abspath, csv_filename):
+        if self.gitignore:
+            try:
+                with open(self.gitignorePath, 'r') as ignoreFile:
+                    ignoreList = ignoreFile.readlines()
+
+                    for index, line in enumerate(ignoreList):
+                        if line.startswith('#') or line == "\n":
+                            del ignoreList[index]
+                        ignoreList[index] = line.rstrip("\n")
+                print(ignoreList)
+            except FileNotFoundError:
+                print(".gitignore Not Found")
+
         if csv_write:
             with open(f'{csv_filename}.csv', 'w+'):
                 pass
 
         for item in os.listdir(self.dirPath):
+            hashCheckCondition = False
+            if self.gitignore:
+                for ignoreItem in ignoreList:
+                    if ignoreItem == item:
+                        hashCheckCondition = True
+
+            if hashCheckCondition:
+                continue
             if not os.path.isdir(item):
                 if abspath:
                     filePath = os.path.abspath(os.path.join(self.dirPath, item))
                 else:
                     filePath = item
                 try:
-
                     output = gen_sha1(os.path.join(self.dirPath, item), abspath)
                     if csv_write:
                         with open(f'{csv_filename}.csv', 'a') as csvFile:
