@@ -17,20 +17,19 @@ def gen_sha1(path, abspath=True):
 
 
 class dir_sum:
-    def __init__(self, dir_path='.', gitignore=True, gitignore_path=None):
+    def __init__(self, dir_path='.', ignore_file=True, ignore_path=None):
         self.dirPath = dir_path
-        self.gitignorePath = gitignore_path
-        self.gitignore = gitignore
-        if gitignore_path is None:
-            self.gitignorePath = os.path.join(dir_path, '.gitignore')
+        self.ignorePath = ignore_path
+        self.ignoreFile = ignore_file
+        if ignore_path is None:
+            self.ignorePath = os.path.join(dir_path, '.gitignore')
 
 
     def checksum_dir(self, csv_write, abspath, csv_filename):
-        if self.gitignore:
+        if self.ignoreFile:
             try:
-                with open(self.gitignorePath, 'r') as ignoreFile:
+                with open(self.ignorePath, 'r') as ignoreFile:
                     ignoreList = ignoreFile.readlines()
-
                     for index, line in enumerate(ignoreList):
                         if line.startswith('#') or line == "\n":
                             del ignoreList[index]
@@ -45,7 +44,7 @@ class dir_sum:
 
         for item in os.listdir(self.dirPath):
             hashCheckCondition = False
-            if self.gitignore:
+            if self.ignoreFile:
                 for ignoreItem in ignoreList:
                     if ignoreItem == item:
                         hashCheckCondition = True
