@@ -3,11 +3,14 @@ import hashlib
 import csv
 
 
-def gen_sha1(path, abspath=True):
+def gen_sha1(path, buffer_size, abspath=True):
     sha1 = hashlib.sha1()
     with open(path, 'rb') as hashFile:
-        buffer = hashFile.read()
-        sha1.update(buffer)
+        while True:
+            data = hashFile.read(buffer_size)
+            if not data:
+                break
+            sha1.update(data)
         if abspath is True:
             print(f'{os.path.abspath(path)} : {sha1.hexdigest()}')
             return [os.path.abspath(path), sha1.hexdigest()]
@@ -33,28 +36,36 @@ def format_csv(csv_file_path):
                 newFile.write(key)
 
 
+def format_ignore(ignore_file_path):
+    try:
+        with open(ignore_file_path, 'r') as ignoreFile:
+            ignoreList = ignoreFile.readlines()
+            for index, line in enumerate(ignoreList):
+                if line.startswith('#') or line == "\n":
+                    del ignoreList[index]
+                    continue
+                ignoreList[index] = line.rstrip("\n")
+        return ignoreList
+    except FileNotFoundError:
+        print(f"{ignore_file_path} Not Found")
+        return None
+
+
 class dir_sum:
-    def __init__(self, dir_path='.', ignore_file=True, ignore_path=None):
+    def __init__(self, buffer_size, dir_path='.', ignore_file=True, ignore_path=None):
         self.dirPath = dir_path
         self.ignorePath = ignore_path
         self.ignoreFile = ignore_file
+        self.buffer_size = buffer_size
         if ignore_path is None:
             self.ignorePath = os.path.join(dir_path, '.gitignore')
 
 
     def checksum_dir(self, csv_write, abspath, csv_filename):
+
+        global ignoreListDef
         if self.ignoreFile:
-            try:
-                with open(self.ignorePath, 'r') as ignoreFile:
-                    ignoreList = ignoreFile.readlines()
-                    for index, line in enumerate(ignoreList):
-                        if line.startswith('#') or line == "\n":
-                            del ignoreList[index]
-                        ignoreList[index] = line.rstrip("\n")
-            except FileNotFoundError:
-                print(".gitignore Not Found")
-                ignoreList = None
-                
+            ignoreListDef = format_ignore(self.ignorePath)
         if csv_write:
             with open(f'{csv_filename}.csv', 'w+'):
                 pass
@@ -63,7 +74,7 @@ class dir_sum:
                 hashCheckCondition = False
                 if self.ignoreFile:
                     try:
-                        for ignoreItem in ignoreList:
+                        for ignoreItem in ignoreListDef:
                             if ignoreItem == item:
                                 hashCheckCondition = True
                     except TypeError:
@@ -77,7 +88,7 @@ class dir_sum:
                     else:
                         filePath = item
                     try:
-                        output = gen_sha1(os.path.join(self.dirPath, item), abspath)
+                        output = gen_sha1(os.path.join(self.dirPath, item), self.buffer_size, abspath)
                         if csv_write:
                             csv_writer(output, csv_filename)
                     except PermissionError as e:
@@ -98,7 +109,7 @@ class dir_sum:
                 else:
                     filePath = (os.path.join(root, file))
                 try:
-                    output = gen_sha1(os.path.join(root, file), abspath)
+                    output = gen_sha1(filePath, self.buffer_size, abspath)
                     if csv_write:
                         csv_writer(output, csv_filename)
                 except PermissionError as e:
@@ -108,5 +119,7 @@ class dir_sum:
 
 
 if __name__ == '__main__':
-    Tracer = dir_sum('D:\\PycharmProjects')
-    Tracer.recursive_checksum_dir(True, True, 'Tracer')
+    # Tracer = dir_sum(65536, 'D:\\PycharmProjects\\Tracer')
+    # Tracer.recursive_checksum_dir(True, True, 'Tracer')
+    gen_sha1('D:\PycharmProjects\CompUTILS\dummy', 65536)
+
