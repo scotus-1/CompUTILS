@@ -69,31 +69,32 @@ class dir_sum:
             with open(f'{csv_filename}.csv', 'w+'):
                 pass
 
-            for item in os.listdir(self.dirPath):
-                hashCheckCondition = False
-                if self.ignoreFile:
-                    try:
-                        for ignoreItem in ignoreListDef:
-                            if ignoreItem == item:
-                                hashCheckCondition = True
-                    except TypeError:
-                        pass
+        for item in os.listdir(self.dirPath):
+            hashCheckCondition = False
+            if self.ignoreFile:
+                try:
+                    for ignoreItem in ignoreListDef:
+                        if ignoreItem == item:
+                            hashCheckCondition = True
+                except TypeError:
+                    pass
 
-                if hashCheckCondition:
-                    continue
-                if not os.path.isdir(item):
-                    if abspath:
-                        filePath = os.path.abspath(os.path.join(self.dirPath, item))
-                    else:
-                        filePath = item
-                    try:
-                        output = gen_sha256(os.path.join(self.dirPath, item), self.buffer_size, abspath)
-                        if csv_write:
-                            csv_writer(output, csv_filename)
-                    except PermissionError as e:
-                        print(f"Error; Could not hash {filePath} : Permission Error")
-                        print(e)
-        format_csv(f'{csv_filename}.csv')
+            if hashCheckCondition:
+                continue
+            if not os.path.isdir(item):
+                if abspath:
+                    filePath = os.path.abspath(os.path.join(self.dirPath, item))
+                else:
+                    filePath = item
+                try:
+                    output = gen_sha256(os.path.join(self.dirPath, item), self.buffer_size, abspath)
+                    if csv_write:
+                        csv_writer(output, csv_filename)
+                except PermissionError as e:
+                    print(f"Error; Could not hash {filePath} : Permission Error")
+                    print(e)
+        if csv_write:
+            format_csv(f'{csv_filename}.csv')
 
 
     def recursive_checksum_dir(self, csv_write, abspath, csv_filename):
@@ -114,4 +115,5 @@ class dir_sum:
                 except PermissionError as e:
                     print(f"Error; Could not hash {filePath} : Permission Error")
                     print(e)
-        format_csv(f'{csv_filename}.csv')
+        if csv_write:
+            format_csv(f'{csv_filename}.csv')
