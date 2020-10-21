@@ -1,6 +1,6 @@
 import os
 import hashlib
-import csv
+import genchecksum.functions.formatfiles as functions
 
 def gen_sha256(path, buffer_size, abspath=True):
     sha256 = hashlib.sha256()
@@ -18,38 +18,6 @@ def gen_sha256(path, buffer_size, abspath=True):
             return [path, sha256.hexdigest()]
 
 
-def csv_writer(material, csv_filename):
-    with open(f'{csv_filename}.csv', 'a') as csvFile:
-        csvWriter = csv.writer(csvFile, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csvWriter.writerow(material)
-
-
-def format_csv(csv_file_path):
-    with open(csv_file_path, 'r') as file:
-        csvList = file.readlines()
-        for index, line in enumerate(csvList):
-            if line == '\n':
-                del csvList[index]
-        with open(csv_file_path, 'w') as newFile:
-            for key in csvList:
-                newFile.write(key)
-
-
-def format_ignore(ignore_file_path):
-    try:
-        with open(ignore_file_path, 'r') as ignoreFile:
-            ignoreList = ignoreFile.readlines()
-            for index, line in enumerate(ignoreList):
-                if line.startswith('#') or line == "\n":
-                    del ignoreList[index]
-                    continue
-                ignoreList[index] = line.rstrip("\n")
-        return ignoreList
-    except FileNotFoundError:
-        print(f"{ignore_file_path} Not Found")
-        return None
-
-
 class dir_sum:
     def __init__(self, buffer_size, dir_path='.', ignore_file=True, ignore_path=None):
         self.dirPath = dir_path
@@ -64,7 +32,7 @@ class dir_sum:
 
         global ignoreListDef
         if self.ignoreFile:
-            ignoreListDef = format_ignore(self.ignorePath)
+            ignoreListDef = functions.format_ignore(self.ignorePath)
         if csv_write:
             with open(f'{csv_filename}.csv', 'w+'):
                 pass
@@ -89,12 +57,12 @@ class dir_sum:
                 try:
                     output = gen_sha256(os.path.join(self.dirPath, item), self.buffer_size, abspath)
                     if csv_write:
-                        csv_writer(output, csv_filename)
+                        functions.csv_writer(output, csv_filename)
                 except PermissionError as e:
                     print(f"Error; Could not hash {filePath} : Permission Error")
                     print(e)
         if csv_write:
-            format_csv(f'{csv_filename}.csv')
+            functions.format_csv(f'{csv_filename}.csv')
 
 
     def recursive_checksum_dir(self, csv_write, abspath, csv_filename):
@@ -111,9 +79,9 @@ class dir_sum:
                 try:
                     output = gen_sha256(filePath, self.buffer_size, abspath)
                     if csv_write:
-                        csv_writer(output, csv_filename)
+                        functions.csv_writer(output, csv_filename)
                 except PermissionError as e:
                     print(f"Error; Could not hash {filePath} : Permission Error")
                     print(e)
         if csv_write:
-            format_csv(f'{csv_filename}.csv')
+            functions.format_csv(f'{csv_filename}.csv')
