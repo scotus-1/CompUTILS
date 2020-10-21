@@ -2,21 +2,20 @@ import os
 import hashlib
 import csv
 
-
-def gen_sha1(path, buffer_size, abspath=True):
-    sha1 = hashlib.sha1()
+def gen_sha256(path, buffer_size, abspath=True):
+    sha256 = hashlib.sha256()
     with open(path, 'rb') as hashFile:
         while True:
             data = hashFile.read(buffer_size)
             if not data:
                 break
-            sha1.update(data)
+            sha256.update(data)
         if abspath is True:
-            print(f'{os.path.abspath(path)} : {sha1.hexdigest()}')
-            return [os.path.abspath(path), sha1.hexdigest()]
+            print(f'"{os.path.abspath(path)}" , "{sha256.hexdigest()}"')
+            return [os.path.abspath(path), sha256.hexdigest()]
         else:
-            print(f'{path} : {sha1.hexdigest()}')
-            return [path, sha1.hexdigest()]
+            print(f'"{path}" , "{sha256.hexdigest()}"')
+            return [path, sha256.hexdigest()]
 
 
 def csv_writer(material, csv_filename):
@@ -70,31 +69,32 @@ class dir_sum:
             with open(f'{csv_filename}.csv', 'w+'):
                 pass
 
-            for item in os.listdir(self.dirPath):
-                hashCheckCondition = False
-                if self.ignoreFile:
-                    try:
-                        for ignoreItem in ignoreListDef:
-                            if ignoreItem == item:
-                                hashCheckCondition = True
-                    except TypeError:
-                        pass
+        for item in os.listdir(self.dirPath):
+            hashCheckCondition = False
+            if self.ignoreFile:
+                try:
+                    for ignoreItem in ignoreListDef:
+                        if ignoreItem == item:
+                            hashCheckCondition = True
+                except TypeError:
+                    pass
 
-                if hashCheckCondition:
-                    continue
-                if not os.path.isdir(item):
-                    if abspath:
-                        filePath = os.path.abspath(os.path.join(self.dirPath, item))
-                    else:
-                        filePath = item
-                    try:
-                        output = gen_sha1(os.path.join(self.dirPath, item), self.buffer_size, abspath)
-                        if csv_write:
-                            csv_writer(output, csv_filename)
-                    except PermissionError as e:
-                        print(f"Error; Could not hash {filePath} : Permission Error")
-                        print(e)
-        format_csv(f'{csv_filename}.csv')
+            if hashCheckCondition:
+                continue
+            if not os.path.isdir(item):
+                if abspath:
+                    filePath = os.path.abspath(os.path.join(self.dirPath, item))
+                else:
+                    filePath = item
+                try:
+                    output = gen_sha256(os.path.join(self.dirPath, item), self.buffer_size, abspath)
+                    if csv_write:
+                        csv_writer(output, csv_filename)
+                except PermissionError as e:
+                    print(f"Error; Could not hash {filePath} : Permission Error")
+                    print(e)
+        if csv_write:
+            format_csv(f'{csv_filename}.csv')
 
 
     def recursive_checksum_dir(self, csv_write, abspath, csv_filename):
@@ -109,17 +109,11 @@ class dir_sum:
                 else:
                     filePath = (os.path.join(root, file))
                 try:
-                    output = gen_sha1(filePath, self.buffer_size, abspath)
+                    output = gen_sha256(filePath, self.buffer_size, abspath)
                     if csv_write:
                         csv_writer(output, csv_filename)
                 except PermissionError as e:
                     print(f"Error; Could not hash {filePath} : Permission Error")
                     print(e)
-        format_csv(f'{csv_filename}.csv')
-
-
-if __name__ == '__main__':
-    # Tracer = dir_sum(65536, 'D:\\PycharmProjects\\Tracer')
-    # Tracer.recursive_checksum_dir(True, True, 'Tracer')
-    gen_sha1('D:\PycharmProjects\CompUTILS\dummy', 65536)
-
+        if csv_write:
+            format_csv(f'{csv_filename}.csv')
