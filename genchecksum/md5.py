@@ -2,21 +2,20 @@ import os
 import hashlib
 import csv
 
-
-def gen_sha1(path, buffer_size, abspath=True):
-    sha1 = hashlib.sha1()
+def gen_md5(path, buffer_size, abspath=True):
+    md5 = hashlib.md5()
     with open(path, 'rb') as hashFile:
         while True:
             data = hashFile.read(buffer_size)
             if not data:
                 break
-            sha1.update(data)
+            md5.update(data)
         if abspath is True:
-            print(f'{os.path.abspath(path)} : {sha1.hexdigest()}')
-            return [os.path.abspath(path), sha1.hexdigest()]
+            print(f'"{os.path.abspath(path)}" , "{md5.hexdigest()}"')
+            return [os.path.abspath(path), md5.hexdigest()]
         else:
-            print(f'{path} : {sha1.hexdigest()}')
-            return [path, sha1.hexdigest()]
+            print(f'"{path}" , "{md5.hexdigest()}"')
+            return [path, md5.hexdigest()]
 
 
 def csv_writer(material, csv_filename):
@@ -88,7 +87,7 @@ class dir_sum:
                     else:
                         filePath = item
                     try:
-                        output = gen_sha1(os.path.join(self.dirPath, item), self.buffer_size, abspath)
+                        output = gen_md5(os.path.join(self.dirPath, item), self.buffer_size, abspath)
                         if csv_write:
                             csv_writer(output, csv_filename)
                     except PermissionError as e:
@@ -109,17 +108,10 @@ class dir_sum:
                 else:
                     filePath = (os.path.join(root, file))
                 try:
-                    output = gen_sha1(filePath, self.buffer_size, abspath)
+                    output = gen_md5(filePath, self.buffer_size, abspath)
                     if csv_write:
                         csv_writer(output, csv_filename)
                 except PermissionError as e:
                     print(f"Error; Could not hash {filePath} : Permission Error")
                     print(e)
         format_csv(f'{csv_filename}.csv')
-
-
-if __name__ == '__main__':
-    # Tracer = dir_sum(65536, 'D:\\PycharmProjects\\Tracer')
-    # Tracer.recursive_checksum_dir(True, True, 'Tracer')
-    gen_sha1('D:\PycharmProjects\CompUTILS\dummy', 65536)
-
