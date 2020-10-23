@@ -125,7 +125,3 @@ dmypy.json
 
 # pycharm stuff
 .idea/
-Tracer.csv
-
-dummy
-test.py
