@@ -1,1 +1,1 @@
-from genchecksum import md5, sha1, sha256
+__all__ = ["md5", "sha1", "sha256"]
